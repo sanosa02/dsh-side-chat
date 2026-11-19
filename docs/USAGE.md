@@ -159,11 +159,12 @@ each one sends.
 
 ## Ask from a selection
 
-Select any text in the main conversation: **Ask in side chat** appears as a second pill right
-next to the built-in **Quote text** action, and pressing it opens a new side-chat tab with the
-selected text already in its composer, ready to review, extend, or send. If the shell does
-not render a selection surface for another consumer (or the companion cannot anchor to it),
-right-clicking inside the highlighted text offers the same action as a fallback. The text is copied as plain
+Select any text in the main conversation: the floating selection pill gains an **Ask in side
+chat** segment next to the built-in **Quote text** action (same background, radius, shadow
+and a divider), and pressing it opens a new side-chat tab with the selected text already in
+its composer, ready to review, extend, or send. If the shell does not render a selection
+surface for another consumer (or the companion cannot anchor to it), right-clicking inside
+the highlighted text offers the same action as a fallback. The text is copied as plain
 text: the side
 chat does not receive DOM positions, surrounding turns, or a hidden snapshot — the normal
 create-on-first-send rules still apply. If several tabs are mounting at the same moment

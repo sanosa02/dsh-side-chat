@@ -257,12 +257,13 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
   consumer (registered earlier) owns a plain `selection`; this consumer therefore also
   admits `contextmenu` on the same selection and suppresses the native menu while it opens.
   On a build without such an earlier consumer, plain selection reaches this consumer too.
-  A **companion action** renders beside that surface so both actions read as one row:
-  the client registers a `shell.overlay` entry that watches the chat's own
-  `[data-text-interaction-surface]` element, positions itself to its right (left when
-  there is no room), and hides itself when the surface is closed, when the selection is
-  empty, or when the visible surface is this plugin's own fallback consumer. The press
-  queues the selected text in the client runtime and calls
+  A **companion segment** joins that surface so both actions read as one pill: the client
+  registers a `shell.overlay` entry that appends its segment inside the chat's own
+  `[data-text-interaction-surface]` element and adds `sc-ask-surface` to it, which restyles
+  the pair as one floating pill (shared background, radius, shadow and a divider). It
+  removes both when the surface closes, the selection empties, or the visible surface is
+  this plugin's fallback consumer (which already carries its own button). The press queues
+  the selected text in the client runtime and calls
   `ctx.sidebarRight.openTab('side-chat')`, which mints a fresh tab; the next tab body that
   mounts consumes the queued text as its composer draft. No host route and no session is
   created by selecting or by the press — the draft session still starts at send. The

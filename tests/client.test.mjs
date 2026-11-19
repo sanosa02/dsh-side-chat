@@ -750,13 +750,6 @@ test('apply keeps the old header/button surfaces out and mounts only the compani
   assert.equal(typeof companion.component, 'function')
 })
 
-test('companionPlacement sits right of the surface when it fits and left otherwise', () => {
-  const { exports } = loadBundle()
-  assert.deepEqual(exports.companionPlacement({ left: 100, right: 220, top: 300, height: 26 }, 1200, 148), { left: 228, top: 313 })
-  assert.deepEqual(exports.companionPlacement({ left: 900, right: 1020, top: 300, height: 26 }, 1100, 148), { left: 744, top: 313 })
-  assert.deepEqual(exports.companionPlacement({ left: 0, right: 20, top: 4, height: 26 }, 200, 148), { left: 28, top: 17 })
-})
-
 test('the injected tab body props carry the runtime, translator and locale face', () => {
   const { exports } = loadBundle()
   const { registered, locale } = applyBundle(exports)
@@ -884,9 +877,9 @@ test('apply injects the stylesheet with the dsh-side-chat marker and sc- classes
   assert.ok(style.textContent.includes('.sc-statusbar'))
   assert.ok(style.textContent.includes('.sc-error-detail'))
   assert.equal(style.textContent.includes('.sc-panel'), false, 'the floating panel root must be gone')
-  const companionRule = style.textContent.match(/\.sc-ask-companion \{[^}]*\}/)
-  assert.ok(companionRule !== null && companionRule[0].includes('position: fixed'), 'the frame-layer companion keeps its fixed placement')
-  assert.equal(style.textContent.replace(companionRule[0], '').includes('position: fixed'), false, 'only the frame-layer companion floats')
+  assert.equal(style.textContent.includes('position: fixed'), false, 'nothing in the panel floats')
+  assert.ok(style.textContent.includes('[data-text-interaction-surface].sc-ask-surface'), 'the companion styles the shared selection pill')
+  assert.ok(style.textContent.includes('.sc-ask-segment'), 'the companion contributes its segment rule')
   assert.equal(style.textContent.includes('min(460px'), false, 'no floating width in the tab body')
   assert.equal(style.textContent.includes('.sc-toggle'), false, 'the header toggle style must be gone')
   const classTokens = [...style.textContent.matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)/g)].map((match) => match[1])
