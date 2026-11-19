@@ -251,9 +251,13 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
   action that writes the flattened text into that tab's composer draft, and a dismiss
   action that clears the local copy. No host route and no session event is created by
   observing; `remote` and `sessions` are part of the client `inject` list.
-- **Ask from a selection.** Selecting text in the main conversation admits this plugin
-  through the Chat text-interaction seat and renders one **Ask in side chat** button next to
-  the selection. The press queues the selected text in the client runtime and calls
+- **Ask from a selection.** The client registers one Chat text-interaction consumer
+  (`id: pkg + '/selection'`). Text-interaction dispatch hands a gesture to consumers in
+  registration order and stops at the first one that opens its surface, so the shipped Quote
+  consumer (registered earlier) owns a plain `selection`; this consumer therefore also
+  admits `contextmenu` on the same selection and suppresses the native menu while it opens.
+  On a build without such an earlier consumer, plain selection reaches this consumer too.
+  The press queues the selected text in the client runtime and calls
   `ctx.sidebarRight.openTab('side-chat')`, which mints a fresh tab; the next tab body that
   mounts consumes the queued text as its composer draft. No host route and no session is
   created by selecting or by the press — the draft session still starts at send. The

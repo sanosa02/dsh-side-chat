@@ -679,13 +679,23 @@ test('selection admission accepts only real selections and opens the surface', (
   assert.equal(definition.id, exports.SELECTION_INTERACTION_ID)
   let opened = 0
   const open = () => { opened += 1 }
+  let prevented = 0
   definition.onInteraction(undefined)
-  definition.onInteraction({ trigger: 'contextmenu', hasSelection: true, readText: () => 'text', open })
+  definition.onInteraction({ trigger: 'contextmenu', hasSelection: false, readText: () => 'text', open })
   definition.onInteraction({ trigger: 'selection', hasSelection: false, readText: () => 'text', open })
   definition.onInteraction({ trigger: 'selection', hasSelection: true, readText: () => '   ', open })
   assert.equal(opened, 0)
   definition.onInteraction({ trigger: 'selection', hasSelection: true, readText: () => 'picked text', open })
   assert.equal(opened, 1)
+  definition.onInteraction({
+    trigger: 'contextmenu',
+    hasSelection: true,
+    readText: () => 'picked text',
+    open,
+    preventDefault: () => { prevented += 1 },
+  })
+  assert.equal(opened, 2, 'the context-menu gesture also admits the action')
+  assert.equal(prevented, 1, 'the native context menu is suppressed while dispatching')
 })
 
 test('the selection action queues the text and opens a new side chat tab', () => {
