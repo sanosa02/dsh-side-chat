@@ -2459,6 +2459,15 @@ test('create registers the parent-lookup tool unless the request disables it', a
   await post(runtime, 'create', { sourceId: 'main-1' })
   assert.equal(registered.length, 1)
   assert.equal(registered[0].name, 'side_chat_parent_context')
+  assert.deepEqual(registered[0].parameters, {
+    type: 'object',
+    properties: {
+      recent: {
+        type: 'number',
+        description: 'How many recent main-conversation messages to return (1-20, default 8).'
+      }
+    }
+  }, 'the registry expects the compiled JSON Schema, not the author-facing DSL map')
 
   const disabled = []
   const off = makeRuntime({
