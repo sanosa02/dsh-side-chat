@@ -157,6 +157,17 @@ A side chat is created lazily. Opening and closing a tab without sending a messa
 no session, no model request, and no cost — opening any number of tabs costs nothing until
 each one sends.
 
+## Parent lookup
+
+Before a side chat sends its first message, its status bar carries a small **Parent lookup
+on/off** toggle (`可查主会话` / `不查主会话`). With lookup on — the default — the side
+agent gets a read-only tool, `side_chat_parent_context`, that returns the latest messages of
+the main conversation (up to 20, default 8) when the user refers to something that happened
+after the side chat was created. The inherited snapshot still covers everything before that,
+so the tool only fills the later gap. The toggle applies until the side session is created:
+once the first message is sent the allowance is fixed, because the tool is registered with
+the agent. Off means the model has only the inherited snapshot and its own transcript.
+
 ## Inheritance semantics
 
 ### Completed-turn seed
