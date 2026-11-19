@@ -4350,3 +4350,38 @@ test('the status bar exposes the parent-lookup toggle only before the session ex
   assert.equal(off.props['aria-label'], 'lookup.off')
   assert.equal(renderToggle(panelState({ lookup: true, sessionId: 'side-1' })), undefined, 'created tabs hide the toggle')
 })
+
+
+test('the pending row shows the formatted time instead of the raw epoch', () => {
+  const { bodyRegistration, props } = panelRenderer()
+  const time = 1700000000000
+  const state = panelState({ pending: [{ id: 'p1', text: 'still thinking', time }] })
+  const tree = renderBodyDom(bodyRegistration, {
+    ...props,
+    runtime: panelRuntime(state),
+    t: (key) => key,
+    useTabInfo: () => ({ tab: { visible: true } })
+  })
+  const pendingElement = findElement(tree, (element) => typeof element.type === 'function'
+    && element.props !== undefined && element.props.pending !== undefined)
+  assert.ok(pendingElement !== undefined, 'the pending row renders')
+  const rowTree = pendingElement.type(pendingElement.props)
+  const meta = findElement(rowTree, (element) => element.props !== undefined && element.props.className === 'sc-meta')
+  const text = String(Array.isArray(meta.children) ? meta.children[0] : meta.children)
+  assert.ok(!text.includes(String(time)), `the raw epoch must not leak: ${text}`)
+  assert.match(text, /^\d{2}:\d{2} · /, `the row shows the formatted clock time: ${text}`)
+})
+
+test('the panel stylesheet ships every feature rule and stays brace-balanced', () => {
+  const { exports } = loadBundle()
+  const css = exports.PANEL_CSS
+  for (const rule of ['.sc-ask-action {', '.sc-return {', '.sc-return-btn {', '.sc-question {', '.sc-question-discuss {', '.sc-lookup {']) {
+    assert.ok(css.includes(rule), `missing stylesheet rule: ${rule}`)
+  }
+  let depth = 0
+  for (const ch of css) {
+    if (ch === '{') depth += 1
+    else if (ch === '}') depth -= 1
+  }
+  assert.equal(depth, 0, 'an unclosed rule makes browsers swallow the rest of the sheet')
+})
