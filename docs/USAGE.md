@@ -166,6 +166,16 @@ chat does not receive DOM positions, surrounding turns, or a hidden snapshot —
 create-on-first-send rules still apply. If several tabs are mounting at the same moment
 (for example a restored layout), the queued selection goes to the first one that mounts.
 
+## Return a reply to the main chat
+
+Every completed assistant reply in a side chat carries a small **Quote into main chat**
+action under its text. Pressing it inserts the reply as a Markdown quote into the main
+session's composer draft — review, edit, or send it there; nothing is sent by the press and
+the side chat keeps its own transcript. Streaming replies and blank replies carry no action;
+if the shell does not offer the composer input seat (a plain slot host), the action is
+absent. Only the reply's text blocks cross over; reasoning folds and tool output stay in the
+side chat.
+
 ## Inheritance semantics
 
 ### Completed-turn seed
