@@ -161,8 +161,8 @@ each one sends.
 
 Select any text in the main conversation: the floating selection pill gains an **Ask in side
 chat** segment next to the built-in **Quote text** action (same background, radius, shadow
-and a divider), and pressing it opens a new side-chat tab with the selected text already in
-its composer, ready to review, extend, or send. If the shell does not render a selection
+and a divider), and pressing it opens a new side-chat tab with the selection inserted as a
+Markdown quote (`> …`) and the caret already on the next line, ready for your instruction. If the shell does not render a selection
 surface for another consumer (or the companion cannot anchor to it), right-clicking inside
 the highlighted text offers the same action as a fallback. The text is copied as plain
 text: the side

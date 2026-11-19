@@ -723,7 +723,19 @@ test('the selection action queues the text and opens a new side chat tab', () =>
   const body = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab')
   const runtime = body.options.inject('session-1').runtime
   runtime.open('tab-1', 'session-1')
-  assert.equal(runtime.getState('tab-1').draft, 'picked text')
+  assert.equal(runtime.getState('tab-1').draft, '> picked text\n')
+  assert.equal(runtime.getState('tab-1').focusRequest, 1, 'the queued selection asks for composer focus')
+  assert.equal(runtime.getState('tab-1').composerCaret, '> picked text\n'.length)
+})
+
+test('selectionDraftText quotes the selection and leaves the caret on the next line', () => {
+  const { exports } = loadBundle()
+  assert.equal(exports.selectionDraftText('picked text'), '> picked text\n')
+  assert.equal(exports.selectionDraftText('first\nsecond'), '> first\n> second\n')
+  assert.equal(exports.selectionDraftText('start\n\nend'), '> start\n>\n> end\n')
+  assert.equal(exports.selectionDraftText('trailing\n\n'), '> trailing\n')
+  assert.equal(exports.selectionDraftText(''), '')
+  assert.equal(exports.selectionDraftText(undefined), '')
 })
 
 test('requestDraft queues text for the next mounted side chat only', () => {

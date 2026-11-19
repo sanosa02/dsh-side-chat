@@ -262,8 +262,9 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
   `[data-text-interaction-surface]` element and adds `sc-ask-surface` to it, which restyles
   the pair as one floating pill (shared background, radius, shadow and a divider). It
   removes both when the surface closes, the selection empties, or the visible surface is
-  this plugin's fallback consumer (which already carries its own button). The press queues
-  the selected text in the client runtime and calls
+  this plugin's fallback consumer (which already carries its own button). The press turns
+  the selection into a Markdown quote (`> …`) ending in one newline, queues it in the client
+  runtime, asks the composer to focus at the draft caret, and calls
   `ctx.sidebarRight.openTab('side-chat')`, which mints a fresh tab; the next tab body that
   mounts consumes the queued text as its composer draft. No host route and no session is
   created by selecting or by the press — the draft session still starts at send. The
