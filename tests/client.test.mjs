@@ -182,6 +182,7 @@ function createCtxStub() {
   const closeHandlers = []
   const interactionDefs = []
   const openedTabs = []
+  const remoteListeners = []
   const locale = createLocaleStub()
   const ctx = {
     locale,
@@ -223,9 +224,20 @@ function createCtxStub() {
           return () => {}
         }
       }
+    },
+    remote: {
+      $on(event, listener) {
+        remoteListeners.push({ event, listener })
+        return () => {}
+      }
+    },
+    sessions: {
+      scopeOf() {
+        return 'main-1'
+      }
     }
   }
-  return { ctx, disposers, registered, injected, tabTypes, closeHandlers, locale, interactionDefs, openedTabs }
+  return { ctx, disposers, registered, injected, tabTypes, closeHandlers, locale, interactionDefs, openedTabs, remoteListeners }
 }
 
 function applyBundle(exports) {
@@ -597,7 +609,7 @@ test('bundle registers the package id and exports the sidebar plugin face', () =
   assert.equal(registration.id, '@flyer103/dsh-side-chat')
   assert.equal(typeof registration.factory, 'function')
   assert.equal(exports.name, 'dsh-side-chat')
-  assert.deepEqual(exports.inject, ['slots', 'sidebarRight', 'sidebarRightTabs', 'locale', 'uiConversation'])
+  assert.deepEqual(exports.inject, ['slots', 'sidebarRight', 'sidebarRightTabs', 'locale', 'uiConversation', 'remote', 'sessions'])
   assert.equal(typeof exports.apply, 'function')
 })
 
@@ -2916,6 +2928,8 @@ function panelRuntime(state, calls = []) {
     setVisible() {},
     getState: () => state,
     setDraft: (id, value) => calls.push(['setDraft', value]),
+    getQuestion: () => null,
+    clearQuestion: (sessionId) => calls.push(['clearQuestion', sessionId]),
     composeDraft: (id, value, caret) => calls.push(['composeDraft', value, caret]),
     setComposing: (id, composing) => calls.push(['composing', composing]),
     pickReference: (id, index) => calls.push(['pick', index]),
@@ -4100,8 +4114,42 @@ test('the composer allows sending with a ready image and no text', () => {
 })
 
 
-function renderBodyDom(bodyRegistration, props) {
-  let tree = bodyRegistration.component(props)
+test('apply observes the forwarded user-question request and always delegates', () => {
+  const { exports } = loadBundle()
+  const { remoteListeners, registered } = applyBundle(exports)
+  const entry = remoteListeners.find((item) => item.event === 'user-questions/request')
+  assert.ok(entry !== undefined, 'the question observer must subscribe to the forwarded event')
+  const body = registered.find((item) => item.options.name === 'sidebar.right.pane.tab')
+  const runtime = body.options.inject('main-1').runtime
+  const request = { questions: [{ id: 'q1', question: 'Which color?' }], wait: { callId: 'call-1' } }
+  let delegated = 0
+  const answer = entry.listener.call({}, request, () => { delegated += 1; return Promise.resolve({ answers: [] }) })
+  assert.equal(typeof answer.then, 'function')
+  assert.equal(delegated, 1, 'the observer must delegate the waterfall')
+  assert.deepEqual(runtime.getQuestion('main-1').questions, request.questions)
+  runtime.clearQuestion('main-1')
+  assert.equal(runtime.getQuestion('main-1'), null)
+})
+
+test('question requests without questions or with a broken scope never break the waterfall', () => {
+  const { exports } = loadBundle()
+  const { remoteListeners } = applyBundle(exports)
+  const entry = remoteListeners.find((item) => item.event === 'user-questions/request')
+  let delegated = 0
+  entry.listener.call({}, { questions: [] }, () => { delegated += 1 })
+  entry.listener.call({}, undefined, () => { delegated += 1 })
+  assert.equal(delegated, 2)
+})
+
+test('questionDraftText flattens questions, details and option labels', () => {
+  const { exports } = loadBundle()
+  assert.equal(exports.questionDraftText(undefined), '')
+  assert.equal(exports.questionDraftText([{ id: 'q1', question: 'Pick', detail: 'why', options: [{ label: 'A' }, { label: 'B' }] }]), 'Pick\nwhy\n- A\n- B')
+  assert.equal(exports.questionDraftText([{ id: 'q2' }, { id: 'q3', question: 'Second' }]), 'Second')
+})
+
+function expandPanelBody(bodyElement) {
+  let tree = bodyElement
   for (let depth = 0; depth < 3 && tree !== null && tree !== undefined && typeof tree.type === 'function'; depth += 1) {
     tree = tree.type(tree.props)
   }
@@ -4194,3 +4242,57 @@ test('streaming replies do not offer the return action while committed rows keep
   assert.ok(findElement(committed.type(committed.props), (element) => element.props !== undefined && element.props.className === 'sc-return-btn') !== undefined)
   assert.equal(findElement(live.type(live.props), (element) => element.props !== undefined && element.props.className === 'sc-return-btn'), undefined)
 })
+
+test('the side chat renders the observed question and can discuss or dismiss it', () => {
+  const { bodyRegistration, props } = panelRenderer()
+  const calls = []
+  const request = {
+    questions: [{ id: 'q1', question: 'Deploy now?', detail: 'staging is green', options: [{ label: 'Yes' }, { label: 'No', description: 'wait' }] }],
+    wait: { callId: 'call-1' }
+  }
+  const state = panelState({ sessionId: 'side-1' })
+  const runtime = {
+    ...panelRuntime(state, calls),
+    getQuestion: (sessionId) => (sessionId === 'main-1' ? request : null),
+    clearQuestion: (sessionId) => calls.push(['clearQuestion', sessionId])
+  }
+  const bodyElement = bodyRegistration.component({
+    runtime,
+    sessionId: 'main-1',
+    t: (key) => key,
+    useTabInfo: () => ({ tab: { visible: true } })
+  })
+  const tree = expandPanelBody(bodyElement)
+  const cardElement = findElement(tree, (element) => typeof element.type === 'function'
+    && element.props !== undefined && element.props.question !== undefined
+    && Array.isArray(element.props.question.questions))
+  assert.ok(cardElement !== undefined, 'the question card element must be passed to the panel')
+  const card = cardElement.type(cardElement.props)
+  const cardBox = findElement(card, (element) => element.props !== undefined && element.props.className === 'sc-question')
+  assert.ok(cardBox !== undefined, 'the question card renders above the transcript')
+  assert.equal(findElement(card, (element) => element.props !== undefined && element.props.className === 'sc-question-text').children[0], 'Deploy now?')
+  assert.equal(findElement(card, (element) => element.props !== undefined && element.props.className === 'sc-question-detail').children[0], 'staging is green')
+  const discuss = findElement(card, (element) => element.props !== undefined && element.props.className === 'sc-question-discuss')
+  discuss.props.onClick()
+  assert.deepEqual(calls.filter((call) => call[0] === 'setDraft')[0], ['setDraft', 'Deploy now?\nstaging is green\n- Yes\n- No'])
+  const dismiss = findElement(card, (element) => element.props !== undefined && element.props.className === 'sc-question-dismiss')
+  dismiss.props.onClick()
+  assert.deepEqual(calls.filter((call) => call[0] === 'clearQuestion'), [['clearQuestion', 'main-1']])
+})
+
+test('no question card renders without an observed request', () => {
+  const { bodyRegistration } = panelRenderer()
+  const state = panelState({ sessionId: 'side-1' })
+  const bodyElement = bodyRegistration.component({
+    runtime: panelRuntime(state),
+    sessionId: 'main-1',
+    t: (key) => key,
+    useTabInfo: () => ({ tab: { visible: true } })
+  })
+  const tree = expandPanelBody(bodyElement)
+  assert.equal(findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-question'), undefined)
+})
+
+function renderBodyDom(bodyRegistration, props) {
+  return expandPanelBody(bodyRegistration.component(props))
+}

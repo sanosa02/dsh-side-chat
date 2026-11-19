@@ -176,6 +176,17 @@ if the shell does not offer the composer input seat (a plain slot host), the act
 absent. Only the reply's text blocks cross over; reasoning folds and tool output stay in the
 side chat.
 
+## Question dialogs from the side chat
+
+While the main agent is asking a structured question (`ask_user_question`), each open side
+chat of that session shows the same question in a small card above its transcript: the
+question text, its detail, and the option labels. **Discuss in side chat** copies that text
+into the side-chat composer, so you can reason about the choice with the side agent before
+answering. The card is observe-only: the main conversation still owns the dialog and the
+answer, and nothing in the side chat can answer, dismiss or delay it. The card follows the
+latest request for that parent session and disappears when you dismiss it or answer in the
+main conversation (the next request replaces it).
+
 ## Inheritance semantics
 
 ### Completed-turn seed
