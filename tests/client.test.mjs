@@ -180,6 +180,8 @@ function createCtxStub() {
   const injected = []
   const tabTypes = []
   const closeHandlers = []
+  const interactionDefs = []
+  const openedTabs = []
   const locale = createLocaleStub()
   const ctx = {
     locale,
@@ -209,10 +211,21 @@ function createCtxStub() {
       registerCloseHandler(kind, handler) {
         closeHandlers.push({ kind, handler })
         return () => {}
+      },
+      openTab(kind) {
+        openedTabs.push(kind)
+      }
+    },
+    uiConversation: {
+      interactions: {
+        register(definition) {
+          interactionDefs.push(definition)
+          return () => {}
+        }
       }
     }
   }
-  return { ctx, disposers, registered, injected, tabTypes, closeHandlers, locale }
+  return { ctx, disposers, registered, injected, tabTypes, closeHandlers, locale, interactionDefs, openedTabs }
 }
 
 function applyBundle(exports) {
@@ -584,7 +597,7 @@ test('bundle registers the package id and exports the sidebar plugin face', () =
   assert.equal(registration.id, '@flyer103/dsh-side-chat')
   assert.equal(typeof registration.factory, 'function')
   assert.equal(exports.name, 'dsh-side-chat')
-  assert.deepEqual(exports.inject, ['slots', 'sidebarRight', 'sidebarRightTabs', 'locale'])
+  assert.deepEqual(exports.inject, ['slots', 'sidebarRight', 'sidebarRightTabs', 'locale', 'uiConversation'])
   assert.equal(typeof exports.apply, 'function')
 })
 
@@ -611,8 +624,8 @@ test('apply registers the sidebar tab type, the localized body slot and the clos
   const { exports } = loadBundle()
   const { registered, injected, tabTypes, closeHandlers, locale } = applyBundle(exports)
 
-  assert.deepEqual(injected, ['sidebar.right.pane.tab', 'sidebar.right.pane.tab.title'])
-  assert.equal(registered.length, 2)
+  assert.deepEqual(injected, ['sidebar.right.pane.tab', 'sidebar.right.pane.tab.title', 'conversation.chat.text-interaction'])
+  assert.equal(registered.length, 3)
   const body = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab')
   const title = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab.title')
   assert.ok(body !== undefined, 'tab body slot must be registered')
@@ -644,6 +657,61 @@ test('apply registers the sidebar tab type, the localized body slot and the clos
   assert.equal(closeHandlers.length, 1)
   assert.equal(closeHandlers[0].kind, KIND)
   assert.equal(typeof closeHandlers[0].handler, 'function')
+})
+
+test('selection admission accepts only real selections and opens the surface', () => {
+  const { exports } = loadBundle()
+  const { interactionDefs } = applyBundle(exports)
+  assert.equal(interactionDefs.length, 1)
+  const definition = interactionDefs[0]
+  assert.equal(definition.id, exports.SELECTION_INTERACTION_ID)
+  let opened = 0
+  const open = () => { opened += 1 }
+  definition.onInteraction(undefined)
+  definition.onInteraction({ trigger: 'contextmenu', hasSelection: true, readText: () => 'text', open })
+  definition.onInteraction({ trigger: 'selection', hasSelection: false, readText: () => 'text', open })
+  definition.onInteraction({ trigger: 'selection', hasSelection: true, readText: () => '   ', open })
+  assert.equal(opened, 0)
+  definition.onInteraction({ trigger: 'selection', hasSelection: true, readText: () => 'picked text', open })
+  assert.equal(opened, 1)
+})
+
+test('the selection action queues the text and opens a new side chat tab', () => {
+  const { exports } = loadBundle()
+  const { registered, openedTabs } = applyBundle(exports)
+  const surface = registered.find((entry) => entry.options.name === 'conversation.chat.text-interaction')
+  assert.ok(surface !== undefined, 'text-interaction surface must be registered')
+  assert.equal(surface.options.key, exports.SELECTION_INTERACTION_ID)
+  assert.equal(surface.options.locale, NS)
+  const face = surface.options.inject('session-1')
+  assert.equal(typeof face.open, 'function')
+  let dismissed = 0
+  const tree = surface.component({
+    ...face,
+    t: (key) => exports.ZH_DICT[key],
+    dismiss: () => { dismissed += 1 },
+    readText: () => 'picked text'
+  })
+  assert.equal(tree.type, 'button')
+  assert.equal(tree.className, undefined)
+  assert.equal(tree.props['aria-label'], '在侧边对话中提问')
+  tree.props.onClick()
+  assert.equal(dismissed, 1)
+  assert.deepEqual(openedTabs, [exports.SIDE_CHAT_KIND])
+  const body = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab')
+  const runtime = body.options.inject('session-1').runtime
+  runtime.open('tab-1', 'session-1')
+  assert.equal(runtime.getState('tab-1').draft, 'picked text')
+})
+
+test('requestDraft queues text for the next mounted side chat only', () => {
+  const { runtime } = createRuntimeWith(createFetchStub({}))
+  assert.equal(runtime.requestDraft('   '), false)
+  assert.equal(runtime.requestDraft('hello'), true)
+  runtime.open('tab-1', 'session-1')
+  assert.equal(runtime.getState('tab-1').draft, 'hello')
+  runtime.open('tab-2', 'session-1')
+  assert.equal(runtime.getState('tab-2').draft, '')
 })
 
 test('apply no longer registers the header button or the shell overlay', () => {

@@ -157,6 +157,15 @@ A side chat is created lazily. Opening and closing a tab without sending a messa
 no session, no model request, and no cost — opening any number of tabs costs nothing until
 each one sends.
 
+## Ask from a selection
+
+Select any text in the main conversation; a small **Ask in side chat** action appears next
+to the selection. Press it and a new side-chat tab opens with the selected text already in
+its composer, ready to review, extend, or send. The text is copied as plain text: the side
+chat does not receive DOM positions, surrounding turns, or a hidden snapshot — the normal
+create-on-first-send rules still apply. If several tabs are mounting at the same moment
+(for example a restored layout), the queued selection goes to the first one that mounts.
+
 ## Inheritance semantics
 
 ### Completed-turn seed

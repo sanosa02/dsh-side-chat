@@ -40,7 +40,8 @@ Then **restart DSH**, open a session, and expand the right sidebar from the sess
 
 ## What it does
 
-- **Native sidebar tab** — lives in the session's right sidebar next to the other tabs; no standalone session-header button and no floating overlay.
+- **Native sidebar tab** — lives in the session's right sidebar next to the other tabs; no standalone session-header button and no floating panel of its own.
+- **Ask from a selection** — select text in the main conversation, press **Ask in side chat**, and the new side-chat tab opens with that text in its draft; only the selected text crosses over, no DOM state.
 - **Several at once** — a parent session can hold multiple independent side-chat tabs, each its own ephemeral side session with a numbered chip; open another from the guide card or from a tab's **New side chat** button.
 - **Inherits context** — the parent's completed turns plus a snapshot of what the main session is doing right now, taken when that side chat is created.
 - **Inherits the agent** — same working directory, preset composition, tools, skills, model routing, sandbox mode and approval policy.

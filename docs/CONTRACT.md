@@ -203,7 +203,8 @@ auth headers on either; same-origin only, like every other route.
 
 The side chat is a native tab type of the right Sidebar, opened from that column's guide
 page — the same public path every shipped tab uses (`ctx.sidebarRightTabs.register` +
-`ctx.slots.register`). There is no session-header button and no floating overlay. The tab
+`ctx.slots.register`). There is no session-header button and no separate floating panel for
+the side chat itself; the only floating surface is the one text selection admits (below). The tab
 type is registered with `multiple: true`, so one parent session can hold several side-chat
 tab instances in the same pane; each instance owns its own side session. The guide entry
 and the tab's status-bar new-side-chat button each open a fresh instance.
@@ -214,6 +215,8 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
 | `ctx.slots.register` | `{ name: 'sidebar.right.pane.tab', key: pkg }` | tab body (message flow + composer) |
 | `ctx.slots.register` | `{ name: 'sidebar.right.pane.tab.title', key: pkg }` | tab chip title (plain, or numbered for later instances) |
 | `ctx.sidebarRight.registerCloseHandler` | `('side-chat', (sessionId, tab) => close)` | closing the tab destroys only that tab's side session |
+| `ctx.uiConversation.interactions.register` | `{ id: pkg + '/selection', onInteraction }` | admit a main-conversation text selection and show its action surface |
+| `ctx.slots.register` | `{ name: 'conversation.chat.text-interaction', key: pkg + '/selection' }` | the **Ask in side chat** button rendered through that seat |
 
 - One side session per tab instance, not per parent session. The client derives an opaque
   per-tab identity `${sourceId}#${tabId}` from the parent session id and the tab instance
@@ -231,6 +234,15 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
   that side session and leaves the other side chats and the parent session untouched.
 - Body props: `sessionId` (parent session) plus the framework-injected `useTabInfo()`; the
   tab instance id from `useTabInfo()` is what makes the identity per-tab.
+- **Ask from a selection.** Selecting text in the main conversation admits this plugin
+  through the Chat text-interaction seat and renders one **Ask in side chat** button next to
+  the selection. The press queues the selected text in the client runtime and calls
+  `ctx.sidebarRight.openTab('side-chat')`, which mints a fresh tab; the next tab body that
+  mounts consumes the queued text as its composer draft. No host route and no session is
+  created by selecting or by the press — the draft session still starts at send. The
+  selection travels as text only; the plugin reads no DOM offsets and no session log. The
+  client half therefore declares `uiConversation` in its `inject` list alongside
+  `sidebarRight`/`sidebarRightTabs`/`slots`/`locale`.
 
 ## Rendering contract (client)
 
