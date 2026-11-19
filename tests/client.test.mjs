@@ -636,8 +636,8 @@ test('apply registers the sidebar tab type, the localized body slot and the clos
   const { exports } = loadBundle()
   const { registered, injected, tabTypes, closeHandlers, locale } = applyBundle(exports)
 
-  assert.deepEqual(injected, ['sidebar.right.pane.tab', 'sidebar.right.pane.tab.title', 'conversation.chat.text-interaction'])
-  assert.equal(registered.length, 3)
+  assert.deepEqual(injected, ['sidebar.right.pane.tab', 'sidebar.right.pane.tab.title', 'conversation.chat.text-interaction', 'shell.overlay'])
+  assert.equal(registered.length, 4)
   const body = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab')
   const title = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab.title')
   assert.ok(body !== undefined, 'tab body slot must be registered')
@@ -736,13 +736,25 @@ test('requestDraft queues text for the next mounted side chat only', () => {
   assert.equal(runtime.getState('tab-2').draft, '')
 })
 
-test('apply no longer registers the header button or the shell overlay', () => {
+test('apply keeps the old header/button surfaces out and mounts only the companion overlay', () => {
   const { exports } = loadBundle()
   const { registered, injected } = applyBundle(exports)
   assert.equal(injected.includes('conversation.session.header.actions'), false)
-  assert.equal(injected.includes('shell.overlay'), false)
+  assert.equal(injected.includes('shell.overlay'), true)
   assert.equal(registered.some((entry) => entry.options.id === 'side-chat.toggle'), false)
   assert.equal(registered.some((entry) => entry.options.id === 'side-chat.panel'), false)
+  const companion = registered.find((entry) => entry.options.id === 'side-chat.ask-companion')
+  assert.ok(companion !== undefined, 'the companion overlay registers')
+  assert.equal(companion.options.name, 'shell.overlay')
+  assert.equal(companion.options.order, 100)
+  assert.equal(typeof companion.component, 'function')
+})
+
+test('companionPlacement sits right of the surface when it fits and left otherwise', () => {
+  const { exports } = loadBundle()
+  assert.deepEqual(exports.companionPlacement({ left: 100, right: 220, top: 300, height: 26 }, 1200, 148), { left: 228, top: 313 })
+  assert.deepEqual(exports.companionPlacement({ left: 900, right: 1020, top: 300, height: 26 }, 1100, 148), { left: 744, top: 313 })
+  assert.deepEqual(exports.companionPlacement({ left: 0, right: 20, top: 4, height: 26 }, 200, 148), { left: 28, top: 17 })
 })
 
 test('the injected tab body props carry the runtime, translator and locale face', () => {
@@ -872,7 +884,9 @@ test('apply injects the stylesheet with the dsh-side-chat marker and sc- classes
   assert.ok(style.textContent.includes('.sc-statusbar'))
   assert.ok(style.textContent.includes('.sc-error-detail'))
   assert.equal(style.textContent.includes('.sc-panel'), false, 'the floating panel root must be gone')
-  assert.equal(style.textContent.includes('position: fixed'), false, 'no floating positioning in the tab body')
+  const companionRule = style.textContent.match(/\.sc-ask-companion \{[^}]*\}/)
+  assert.ok(companionRule !== null && companionRule[0].includes('position: fixed'), 'the frame-layer companion keeps its fixed placement')
+  assert.equal(style.textContent.replace(companionRule[0], '').includes('position: fixed'), false, 'only the frame-layer companion floats')
   assert.equal(style.textContent.includes('min(460px'), false, 'no floating width in the tab body')
   assert.equal(style.textContent.includes('.sc-toggle'), false, 'the header toggle style must be gone')
   const classTokens = [...style.textContent.matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)/g)].map((match) => match[1])

@@ -159,11 +159,11 @@ each one sends.
 
 ## Ask from a selection
 
-Select any text in the main conversation, then **right-click inside the highlighted text**
-and pick **Ask in side chat** (the press suppresses the native context menu). On a DSH build
-where no earlier consumer owns plain selection, selecting the text is enough — the action
-appears next to the selection. Either way a new side-chat tab opens with the selected text
-already in its composer, ready to review, extend, or send. The text is copied as plain
+Select any text in the main conversation: **Ask in side chat** appears as a second pill right
+next to the built-in **Quote text** action, and pressing it opens a new side-chat tab with the
+selected text already in its composer, ready to review, extend, or send. If the shell does
+not render a selection surface for another consumer (or the companion cannot anchor to it),
+right-clicking inside the highlighted text offers the same action as a fallback. The text is copied as plain
 text: the side
 chat does not receive DOM positions, surrounding turns, or a hidden snapshot — the normal
 create-on-first-send rules still apply. If several tabs are mounting at the same moment
