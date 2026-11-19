@@ -44,6 +44,7 @@ Then **restart DSH**, open a session, and expand the right sidebar from the sess
 - **Ask from a selection** — select text in the main conversation, press **Ask in side chat**, and the new side-chat tab opens with that text in its draft; only the selected text crosses over, no DOM state.
 - **Several at once** — a parent session can hold multiple independent side-chat tabs, each its own ephemeral side session with a numbered chip; open another from the guide card or from a tab's **New side chat** button.
 - **Inherits context** — the parent's completed turns plus a snapshot of what the main session is doing right now, taken when that side chat is created.
+- **Sees the pending question** — while the main agent asks a structured question, every side chat of that session shows the question and its options, with a **Discuss in side chat** action that drops the text into the side composer; the main dialog still owns the answer.
 - **Can read the main thread on demand** — a **Parent lookup** toggle in a blank tab lets the side agent fetch the latest messages of the main conversation with a read-only tool, so it can follow what happened after the snapshot; once the side session is created the setting is fixed.
 - **Inherits the agent** — same working directory, preset composition, tools, skills, model routing, sandbox mode and approval policy.
 - **Really edits files** — write/edit/bash changes land in the same workspace and the main session sees them.
