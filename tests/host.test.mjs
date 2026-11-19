@@ -12,6 +12,7 @@ import {
   completedTurnPrefix,
   imageAttachmentRef,
   isSystemNoise,
+  parentLookupTool,
   LiveAttemptState,
   projectQueue,
   recentMainContext,
@@ -2431,4 +2432,40 @@ test('the raw image routes frame correctly over a real HTTP server', async () =>
   } finally {
     await new Promise((resolve) => server.close(resolve))
   }
+})
+
+
+test('parentLookupTool returns recent main-conversation text and caps the request', async () => {
+  const parent = makeParent({ events: BASE_EVENTS })
+  const tool = parentLookupTool(parent)
+  assert.equal(tool.name, 'side_chat_parent_context')
+  const all = await tool.execute({})
+  assert.match(all, /\[user\] main task/)
+  assert.match(all, /\[assistant\] working on it/)
+  assert.match(all, /\[user\] in flight request/)
+  assert.match(all, /latest 4 messages/)
+  const one = await tool.execute({ recent: 1 })
+  assert.match(one, /latest 1 messages/)
+  assert.doesNotMatch(one, /main task/)
+  assert.match(one, /still working/)
+  assert.equal(await parentLookupTool(makeParent({ events: [] })).execute({}), 'The main conversation has no text messages to show yet.')
+})
+
+test('create registers the parent-lookup tool unless the request disables it', async () => {
+  const registered = []
+  const tools = { register(def) { registered.push(def); return () => {} } }
+  const runtime = makeRuntime({ parents: [makeParent({ events: BASE_EVENTS })], services: { tools } })
+  apply(runtime.ctx)
+  await post(runtime, 'create', { sourceId: 'main-1' })
+  assert.equal(registered.length, 1)
+  assert.equal(registered[0].name, 'side_chat_parent_context')
+
+  const disabled = []
+  const off = makeRuntime({
+    parents: [makeParent({ events: BASE_EVENTS })],
+    services: { tools: { register(def) { disabled.push(def); return () => {} } } }
+  })
+  apply(off.ctx)
+  await post(off, 'create', { sourceId: 'main-1', lookup: false })
+  assert.deepEqual(disabled, [])
 })
