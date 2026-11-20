@@ -203,6 +203,16 @@ so the tool only fills the later gap. The toggle applies until the side session 
 once the first message is sent the allowance is fixed, because the tool is registered with
 the agent. Off means the model has only the inherited snapshot and its own transcript.
 
+## Turn process
+
+Each settled turn shows one process row above its answer, shaped like the main
+transcript's: a muted chevron row that reads **Completed**, **Completed in 4m 33s**,
+**Failed** or **Stopped**, and folds that turn's reasoning blocks and tool calls. It is
+collapsed by default; without reasoning or tool calls the row is inert. The assistant's
+answer itself stays outside the fold, so the transcript reads: user message → process row →
+answer. While a turn is still streaming, the live attempt renders inline as before; the
+process row replaces it when the turn settles.
+
 ## Inheritance semantics
 
 ### Completed-turn seed
