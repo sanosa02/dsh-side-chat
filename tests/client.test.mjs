@@ -886,7 +886,7 @@ test('apply injects the stylesheet with the dsh-side-chat marker and sc- classes
   assert.equal(style.tagName, 'style')
   assert.equal(style.dataset.dyn, 'dsh-side-chat')
   assert.ok(style.textContent.includes('.sc-root'))
-  assert.ok(style.textContent.includes('.sc-statusbar'))
+  assert.ok(style.textContent.includes('.sc-root'))
   assert.ok(style.textContent.includes('.sc-error-detail'))
   assert.equal(style.textContent.includes('.sc-panel'), false, 'the floating panel root must be gone')
   assert.equal(style.textContent.includes('position: fixed'), false, 'nothing in the panel floats')
@@ -2517,7 +2517,7 @@ test('the panel does not duplicate the tab strip new-side-chat control', () => {
   const bodyElement = bodyRegistration.component({ ...props, useTabInfo: () => ({ tab }) })
   const tree = bodyElement.type(bodyElement.props)
   assert.equal(findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-new'), undefined)
-  assert.notEqual(findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-lookup'), undefined)
+  assert.equal(findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-lookup'), undefined)
 })
 
 test('the close handler destroys only the side conversation of the closed tab occurrence', async () => {
@@ -4483,29 +4483,18 @@ test('toggleLookup gates the create request and stops mattering after creation',
   assert.equal(runtime.getState(id).lookup, false, 'a created side session keeps the allowance it was born with')
 })
 
-test('the status bar exposes the parent-lookup toggle only before the session exists', () => {
+test('the panel no longer renders a parent-lookup toggle', () => {
   const { bodyRegistration } = panelRenderer()
-  const calls = []
-  const renderToggle = (state) => {
-    const runtime = { ...panelRuntime(state, calls), toggleLookup: (id) => calls.push(['toggleLookup', id]) }
-    const tree = renderPanelDom(bodyRegistration, {
-      runtime,
-      sessionId: 'main-1',
-      t: (key) => key,
-      useTabInfo: () => ({ tab: { visible: true } })
-    })
-    return findElement(tree, (element) => element.props !== undefined
-      && typeof element.props.className === 'string' && element.props.className.startsWith('sc-lookup'))
-  }
-  const toggle = renderToggle(panelState({ lookup: true }))
-  assert.ok(toggle !== undefined, 'blank tabs render the toggle')
-  assert.equal(toggle.props['aria-label'], 'lookup.on')
-  toggle.props.onClick()
-  assert.equal(calls.filter((call) => call[0] === 'toggleLookup').length, 1)
-  const off = renderToggle(panelState({ lookup: false }))
-  assert.equal(off.props['aria-label'], 'lookup.off')
-  assert.equal(renderToggle(panelState({ lookup: true, sessionId: 'side-1' })), undefined, 'created tabs hide the toggle')
+  const tree = renderPanelDom(bodyRegistration, {
+    runtime: panelRuntime(panelState({ lookup: true })),
+    sessionId: 'main-1',
+    t: (key) => key,
+    useTabInfo: () => ({ tab: { visible: true } })
+  })
+  assert.equal(findElement(tree, (element) => element.props !== undefined
+    && typeof element.props.className === 'string' && element.props.className.startsWith('sc-lookup')), undefined)
 })
+
 
 
 test('the pending row shows the formatted time instead of the raw epoch', () => {
@@ -4531,7 +4520,7 @@ test('the pending row shows the formatted time instead of the raw epoch', () => 
 test('the panel stylesheet ships every feature rule and stays brace-balanced', () => {
   const { exports } = loadBundle()
   const css = exports.PANEL_CSS
-  for (const rule of ['.sc-ask-action {', '.sc-return {', '.sc-return-btn {', '.sc-question {', '.sc-question-discuss {', '.sc-lookup {']) {
+  for (const rule of ['.sc-ask-action {', '.sc-return {', '.sc-return-btn {', '.sc-question {', '.sc-question-discuss {', '.sc-tab-title {']) {
     assert.ok(css.includes(rule), `missing stylesheet rule: ${rule}`)
   }
   let depth = 0

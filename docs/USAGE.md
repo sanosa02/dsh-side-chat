@@ -194,14 +194,12 @@ main conversation (the next request replaces it).
 
 ## Parent lookup
 
-Before a side chat sends its first message, its slim status row carries a small **Parent lookup
-on/off** toggle (`可查主会话` / `不查主会话`). With lookup on — the default — the side
+The parent lookup is always on: the side
 agent gets a read-only tool, `side_chat_parent_context`, that returns the latest messages of
 the main conversation (up to 20, default 8) when the user refers to something that happened
 after the side chat was created. The inherited snapshot still covers everything before that,
-so the tool only fills the later gap. The toggle applies until the side session is created:
-once the first message is sent the allowance is fixed, because the tool is registered with
-the agent. Off means the model has only the inherited snapshot and its own transcript.
+so the tool only fills the later gap. There is no UI toggle any more; the tool is registered
+when the side session is created.
 
 ## Turn process
 
@@ -330,11 +328,10 @@ Unlike read-only side-chat plugins, this one is expected to change files:
   labelled **Side chat** (「侧边会话」 when DSH is in Chinese); later ones append their
   ordinal — **Side chat 2**, **Side chat 3** (「侧边会话 2」, 「侧边会话 3」). There is no
   floating window, no fixed width, no shadow or mask, and no page overlay.
-- After the first message the tab body has no status row (the running/idle label, queue
-  count and duplicate new-side-chat button were removed; adding tabs belongs to the tab
-  strip's add control). Before the first message a slim row carries only the **Parent
-  lookup** toggle, then the message list, the composer, and — once the side chat has usage
-  data — the usage dock under the composer.
+- The tab body has no status row (the running/idle label, queue count, parent-lookup
+  toggle and duplicate new-side-chat button were removed; adding tabs belongs to the tab
+  strip's add control), then the message list, the composer, and — once the side chat has
+  usage data — the usage dock under the composer.
 - Messages: user bubbles with timestamps; assistant Markdown streamed token by token while
   the turn runs (reasoning folded, tool calls folded with their arguments and results);
   running/thinking indicator when no live text is visible yet; optimistic pending messages;
