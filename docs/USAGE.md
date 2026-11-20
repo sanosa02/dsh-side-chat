@@ -216,6 +216,17 @@ answer itself stays outside the fold, so the transcript reads: user message → 
 answer. While a turn is still streaming, the live attempt renders inline as before; the
 process row replaces it when the turn settles.
 
+## Restore after restart
+
+Host-held side sessions are lost from memory when DSH restarts, but their session
+logs are not: open an empty side-chat tab and it lists the saved `side-chat-*`
+conversations above the empty state. Choosing one cold-resumes that agent from its
+session log (the side developer section and the parent-lookup tool are recomposed
+on resume), then the tab continues the same conversation; closing the tab deletes
+it as before. Tab layout itself is not restored by DSH, so reopen a side-chat tab
+first. Restoring a side session of a different main session binds its parent lookup
+to the current main session.
+
 ## Inheritance semantics
 
 ### Completed-turn seed
