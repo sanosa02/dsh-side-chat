@@ -208,7 +208,10 @@ the agent. Off means the model has only the inherited snapshot and its own trans
 Each settled turn shows one process row above its answer, shaped like the main
 transcript's: a muted chevron row that reads **Completed**, **Completed in 4m 33s**,
 **Failed** or **Stopped**, and folds that turn's reasoning blocks and tool calls. It is
-collapsed by default; without reasoning or tool calls the row is inert. The assistant's
+collapsed by default; without reasoning or tool calls the row is inert. Expanding shows the
+turn's reasoning folds and compact tool cards: the tool name plus its command/path gist, the
+failure badge, and a **Show output** disclosure with the result (not a raw arguments dump).
+The assistant's
 answer itself stays outside the fold, so the transcript reads: user message → process row →
 answer. While a turn is still streaming, the live attempt renders inline as before; the
 process row replaces it when the turn settles.

@@ -1051,6 +1051,17 @@ test('foldEntries renders assistant blocks and attaches tool results by callId',
   assert.equal(nodes[2].blocks[0].text, 'Running them.')
 })
 
+test('toolArgsSummary shows the command or path gist, not raw JSON', () => {
+  const { exports } = loadBundle()
+  assert.equal(exports.toolArgsSummary(JSON.stringify({ command: 'ls -la', description: 'list' })), 'ls -la')
+  assert.equal(exports.toolArgsSummary(JSON.stringify({ path: '/tmp/a.txt', content: 'x' })), '/tmp/a.txt')
+  assert.equal(exports.toolArgsSummary(JSON.stringify({ description: 'Read the file' })), 'Read the file')
+  assert.equal(exports.toolArgsSummary('not json'), 'not json')
+  assert.equal(exports.toolArgsSummary(''), '')
+  assert.equal(exports.toolArgsSummary(undefined), '')
+  assert.equal(exports.toolArgsSummary(JSON.stringify({ a: 'x'.repeat(400) })).endsWith('…'), true)
+})
+
 test('foldEntries groups one turn\'s reasoning and tools into a single process node', () => {
   const { exports } = loadBundle()
   const entries = [
