@@ -1105,6 +1105,18 @@ test('a running turn hides its process row until the turn settles', () => {
   assert.equal(processElement, undefined, 'no process row before turn/end')
 })
 
+test('latestGoal folds goal changes and clears', () => {
+  const { exports } = loadBundle()
+  const objective = { id: 'g1', objective: 'Ship it', status: 'active' }
+  const entries = [
+    { type: 'goal/change', data: { operation: 'create', goal: objective } },
+    { type: 'goal/change', data: { operation: 'pause', goal: { ...objective, revision: 2 } } }
+  ]
+  assert.deepEqual(exports.latestGoal(entries), { objective: 'Ship it', status: 'paused' })
+  assert.equal(exports.latestGoal([...entries, { type: 'goal/change', data: { operation: 'clear', goal: { ...objective } } }]), null)
+  assert.equal(exports.latestGoal([]), null)
+})
+
 test('formatTurnDuration uses seconds and minutes like the main transcript', () => {
   const { exports } = loadBundle()
   assert.equal(exports.formatTurnDuration(400), '1s')
@@ -2975,9 +2987,10 @@ test('the tab body renders the dock under the composer and hides it without metr
   assert.equal(tree.children.length, 2, 'a created session has no status row')
   const footer = tree.children[1]
   assert.equal(footer.props.className, 'sc-footer')
-  assert.equal(footer.children[0].props.className, 'sc-composer', 'the composer stays first')
-  const dock = footer.children[1]
-  assert.equal(dock.props.className, 'sc-dock', 'the dock renders under the composer')
+  const composer = findElement(footer, (element) => element.props !== undefined && element.props.className === 'sc-composer')
+  assert.ok(composer !== undefined, 'the composer renders')
+  const dock = findElement(footer, (element) => element.props !== undefined && element.props.className === 'sc-dock')
+  assert.ok(dock !== undefined, 'the dock renders under the composer')
   const dockClasses = []
   collectElements(dock, (element) => {
     if (element.props !== undefined && typeof element.props.className === 'string') dockClasses.push(element.props.className)
@@ -2998,12 +3011,12 @@ test('the tab body renders the dock under the composer and hides it without metr
 
   state.metrics = null
   const hiddenTree = bodyElement.type(bodyElement.props)
-  assert.equal(hiddenTree.children[1].children[1], null, 'no metrics means no dock')
+  assert.equal(findElement(hiddenTree.children[1], (element) => element.props !== undefined && element.props.className === 'sc-dock'), undefined, 'no metrics means no dock')
 
   delete state.metrics
   delete state.contextWindow
   const legacyTree = bodyElement.type(bodyElement.props)
-  assert.equal(legacyTree.children[1].children[1], null, 'a fabricated state without dock fields keeps working')
+  assert.equal(findElement(legacyTree.children[1], (element) => element.props !== undefined && element.props.className === 'sc-dock'), undefined, 'a fabricated state without dock fields keeps working')
 })
 
 // ---- P1a `@file` references ----
@@ -4520,7 +4533,7 @@ test('the pending row shows the formatted time instead of the raw epoch', () => 
 test('the panel stylesheet ships every feature rule and stays brace-balanced', () => {
   const { exports } = loadBundle()
   const css = exports.PANEL_CSS
-  for (const rule of ['.sc-ask-action {', '.sc-return {', '.sc-return-btn {', '.sc-question {', '.sc-question-discuss {', '.sc-tab-title {']) {
+  for (const rule of ['.sc-ask-action {', '.sc-return {', '.sc-return-btn {', '.sc-question {', '.sc-question-discuss {', '.sc-tab-title {', '.sc-goal {', '.sc-jump {']) {
     assert.ok(css.includes(rule), `missing stylesheet rule: ${rule}`)
   }
   let depth = 0

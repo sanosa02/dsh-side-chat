@@ -328,6 +328,9 @@ Unlike read-only side-chat plugins, this one is expected to change files:
   labelled **Side chat** (「侧边会话」 when DSH is in Chinese); later ones append their
   ordinal — **Side chat 2**, **Side chat 3** (「侧边会话 2」, 「侧边会话 3」). There is no
   floating window, no fixed width, no shadow or mask, and no page overlay.
+- A side session that records a durable goal shows a read-only goal strip above the
+  composer (label + objective; controls stay in the main chat), and a floating chevron
+  jumps to the latest message when the transcript is scrolled up.
 - The tab body has no status row (the running/idle label, queue count, parent-lookup
   toggle and duplicate new-side-chat button were removed; adding tabs belongs to the tab
   strip's add control), then the message list, the composer, and — once the side chat has
