@@ -36,13 +36,13 @@ node scripts/install.mjs --profile desktop            # idempotent; never restar
 node scripts/install.mjs --profile desktop --dry-run  # show the plan only
 ```
 
-Then **restart DSH**, open a session, and expand the right sidebar from the session header (**「Open sidebar」** / 「打开侧边栏」). On the sidebar's guide page, click the **「Side chat」** (「侧边会话」) card; the side chat opens as a native tab in that column. (There is no session-header side-chat button and no floating overlay — the entry lives in the right sidebar, also reachable from the tab strip's add control; inside an open side-chat tab, the status bar's **New side chat** button opens another one.) Send the first message: that tab's side chat is created on that send and destroyed when you close its tab. Every click of the guide card, and every press of a tab's **New side chat** button, opens another side-chat tab in the same pane, each with its own side session and a chip numbered within the parent session (**Side chat**, **Side chat 2**, …; 「侧边会话」, 「侧边会话 2」…). Collapsing the sidebar or switching to another tab only pauses a side chat; opening a tab without sending costs nothing. Closing one side-chat tab destroys only that side chat — the other side chats and the main session are unaffected.
+Then **restart DSH**, open a session, and expand the right sidebar from the session header (**「Open sidebar」** / 「打开侧边栏」). On the sidebar's guide page, click the **「Side chat」** (「侧边会话」) card; the side chat opens as a native tab in that column. (There is no session-header side-chat button and no floating overlay — the entry lives in the right sidebar, also reachable from the tab strip's add control.) Send the first message: that tab's side chat is created on that send and destroyed when you close its tab. Every click of the guide card or the tab strip's add control opens another side-chat tab in the same pane, each with its own side session and a chip numbered within the parent session (**Side chat**, **Side chat 2**, …; 「侧边会话」, 「侧边会话 2」…). Collapsing the sidebar or switching to another tab only pauses a side chat; opening a tab without sending costs nothing. Closing one side-chat tab destroys only that side chat — the other side chats and the main session are unaffected.
 
 ## What it does
 
 - **Native sidebar tab** — lives in the session's right sidebar next to the other tabs; no standalone session-header button and no floating panel of its own.
 - **Ask from a selection** — select text in the main conversation and the floating selection pill gains an **Ask in side chat** segment next to the built-in **Quote text** action (one pill, one divider); pressing it opens a new side-chat tab with the selection quoted into the draft and the caret on the next line (right-click on the selection is the fallback). Only the selected text crosses over, no DOM state.
-- **Several at once** — a parent session can hold multiple independent side-chat tabs, each its own ephemeral side session with a numbered chip; open another from the guide card or from a tab's **New side chat** button.
+- **Several at once** — a parent session can hold multiple independent side-chat tabs, each its own ephemeral side session with a numbered chip; open another from the guide card or the tab strip's add control.
 - **Survives a Host restart** — side-session logs persist; an empty side-chat tab lists the saved conversations and cold-resumes the chosen one (`agents.resume`) instead of losing it.
 - **Inherits context** — the parent's completed turns plus a snapshot of what the main session is doing right now, taken when that side chat is created.
 - **Sees the pending question** — while the main agent asks a structured question, every side chat of that session shows the question and its options, with a **Discuss in side chat** action that drops the text into the side composer; the main dialog still owns the answer.
@@ -73,7 +73,7 @@ Then **restart DSH**, open a session, and expand the right sidebar from the sess
 ## Known limitations
 
 - Approval prompts are not shown inside the side-chat tab: the side session inherits the parent's approval policy, and if that policy asks a human, the side session waits. Use a non-interactive policy (for example `danger-full-access`) for side chats that must write files.
-- A closed tab cannot be restored: reopening the guide card or pressing **New side chat** starts a new side chat, whose agent is created on the next message.
+- A closed tab cannot be restored: reopening the guide card or the tab strip's add control starts a new side chat, whose agent is created on the next message.
 - P1b, designed but not implemented: model picker, surviving a GUI restart, approval rendering in the tab.
 - `@` completion depends on the host reference providers: file/folder completion needs a
   file-reference provider and session completion needs DSH's session-reference service. The
@@ -99,7 +99,7 @@ Then **restart DSH**, open a session, and expand the right sidebar from the sess
 | path | role |
 |---|---|
 | `lib/index.js` | host half: routes, live attempt accumulation and the SSE stream, fork seed, boundary injection, per-instance session registry, close/dispose |
-| `lib/client.js` | client half: right-Sidebar tab type + guide entry, the per-tab body (streaming messages + composer + usage dock), numbered tab chips, the new-side-chat button and the close handler |
+| `lib/client.js` | client half: right-Sidebar tab type + guide entry, the per-tab body (streaming messages + composer + usage dock), numbered tab chips and the close handler |
 | `cordis.patch.yml` | bundle patch inserting the `dsh-side-chat` row |
 | `scripts/install.mjs` | idempotent installer/remover for a local checkout |
 | `dsh.plugin.json` | community manifest metadata; DSH does not read it (official display metadata comes from `package.json` and optional `locale/*.json`) |

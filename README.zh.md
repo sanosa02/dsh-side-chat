@@ -36,7 +36,7 @@ node scripts/install.mjs --profile desktop            # 幂等；不会重启 DS
 node scripts/install.mjs --profile desktop --dry-run  # 只打印计划
 ```
 
-然后**重启 DSH**，打开任意会话，从会话头部展开右侧边栏（**「打开侧边栏」/「Open sidebar」**），在边栏的引导页里点 **「侧边会话」**（English 界面显示 Side chat）卡片，侧边会话会作为该栏的一个原生 tab 打开。**没有会话头部的专属侧边会话按钮，也没有浮层**：入口就在右侧边栏的引导页（已开其它 tab 时，可用 tab 条上的「+」控件打开引导页）；tab 打开后，状态栏上还有 **「新建侧边会话」**（English 界面显示 New side chat）按钮。发送第一条消息——**该 tab 的**侧边会话在首条消息发送时才创建，关闭该 tab 即销毁；收起侧边栏或切到别的 tab 只是暂停，不销毁；只打开 tab 不发送不产生任何会话或开销。每点一次引导页卡片、每按一次 tab 状态栏的「新建侧边会话」按钮，都会在同一分栏里再开一个侧边会话 tab，各自拥有独立的侧边会话，tab 标题按父会话编号（「侧边会话」「侧边会话 2」…；English 界面为 Side chat、Side chat 2…）。关闭其中一个侧边会话 tab 只销毁它自己，其它侧边会话和主会话都不受影响。
+然后**重启 DSH**，打开任意会话，从会话头部展开右侧边栏（**「打开侧边栏」/「Open sidebar」**），在边栏的引导页里点 **「侧边会话」**（English 界面显示 Side chat）卡片，侧边会话会作为该栏的一个原生 tab 打开。**没有会话头部的专属侧边会话按钮，也没有浮层**：入口就在右侧边栏的引导页（已开其它 tab 时，可用 tab 条上的「+」控件打开引导页）。发送第一条消息——**该 tab 的**侧边会话在首条消息发送时才创建，关闭该 tab 即销毁；收起侧边栏或切到别的 tab 只是暂停，不销毁；只打开 tab 不发送不产生任何会话或开销。每点一次引导页卡片或 tab 条上的「+」控件，都会在同一分栏里再开一个侧边会话 tab，各自拥有独立的侧边会话，tab 标题按父会话编号（「侧边会话」「侧边会话 2」…；English 界面为 Side chat、Side chat 2…）。关闭其中一个侧边会话 tab 只销毁它自己，其它侧边会话和主会话都不受影响。
 
 ## 它做什么
 
@@ -94,7 +94,7 @@ node scripts/install.mjs --profile desktop --dry-run  # 只打印计划
 | 路径 | 作用 |
 |---|---|
 | `lib/index.js` | host 半部：路由、实时尝试累积与 SSE 事件流、fork seed、boundary 注入、按实例的 session registry、close/dispose |
-| `lib/client.js` | client 半部：右侧边栏 tab 类型 + 引导页入口，按 tab 实例的正文（流式消息区 + composer + 用量 dock）、编号 chip、新建按钮与 close handler |
+| `lib/client.js` | client 半部：右侧边栏 tab 类型 + 引导页入口，按 tab 实例的正文（流式消息区 + composer + 用量 dock）、编号 chip 与 close handler |
 | `cordis.patch.yml` | bundle patch：插入 `dsh-side-chat` 行 |
 | `scripts/install.mjs` | 本地仓库的幂等安装/卸载脚本 |
 | `dsh.plugin.json` | 社区约定的清单元数据；DSH 不读取（官方展示元数据来自 `package.json` 与可选 `locale/*.json`） |

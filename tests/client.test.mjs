@@ -2509,26 +2509,17 @@ test('later side-chat tabs of one session get a numbered chip title', () => {
   assert.deepEqual(titleFor('tab-2').children, ['Side chat 2'])
 })
 
-test('the tab status bar offers a new side chat through the tab actions', () => {
+test('the panel does not duplicate the tab strip new-side-chat control', () => {
   const { exports } = loadBundle()
   const { registered } = applyBundle(exports)
   const bodyRegistration = registered.find((entry) => entry.options.name === 'sidebar.right.pane.tab')
   const props = bodyRegistration.options.inject('session-1')
-  const opened = []
-  const tab = {
-    id: 'tab-1',
-    visible: true,
-    actions: { openTab: (kind, options) => opened.push({ kind, options }) }
-  }
+  const tab = { id: 'tab-1', visible: true, actions: { openTab: () => {} } }
   props.runtime.open(exports.instanceKeyOf('session-1', 'tab-1'), 'session-1')
   const bodyElement = bodyRegistration.component({ ...props, useTabInfo: () => ({ tab }) })
-  assert.equal(typeof bodyElement.type, 'function', 'the tab body renders the panel component')
   const tree = bodyElement.type(bodyElement.props)
-  const button = findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-new')
-  assert.ok(button !== undefined, 'the new-side-chat control renders in the status bar')
-  assert.equal(button.props['aria-label'], '新建侧边会话')
-  button.props.onClick()
-  assert.deepEqual(opened, [{ kind: KIND, options: undefined }])
+  assert.equal(findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-new'), undefined)
+  assert.notEqual(findElement(tree, (element) => element.props !== undefined && element.props.className === 'sc-lookup'), undefined)
 })
 
 test('the close handler destroys only the side conversation of the closed tab occurrence', async () => {
@@ -2983,8 +2974,8 @@ test('the tab body renders the dock under the composer and hides it without metr
   assert.equal(typeof bodyElement.type, 'function')
   const tree = bodyElement.type(bodyElement.props)
   assert.equal(tree.props.className, 'sc-root')
-  assert.equal(tree.children.length, 3)
-  const footer = tree.children[2]
+  assert.equal(tree.children.length, 2, 'a created session has no status row')
+  const footer = tree.children[1]
   assert.equal(footer.props.className, 'sc-footer')
   assert.equal(footer.children[0].props.className, 'sc-composer', 'the composer stays first')
   const dock = footer.children[1]
@@ -3009,12 +3000,12 @@ test('the tab body renders the dock under the composer and hides it without metr
 
   state.metrics = null
   const hiddenTree = bodyElement.type(bodyElement.props)
-  assert.equal(hiddenTree.children[2].children[1], null, 'no metrics means no dock')
+  assert.equal(hiddenTree.children[1].children[1], null, 'no metrics means no dock')
 
   delete state.metrics
   delete state.contextWindow
   const legacyTree = bodyElement.type(bodyElement.props)
-  assert.equal(legacyTree.children[2].children[1], null, 'a fabricated state without dock fields keeps working')
+  assert.equal(legacyTree.children[1].children[1], null, 'a fabricated state without dock fields keeps working')
 })
 
 // ---- P1a `@file` references ----

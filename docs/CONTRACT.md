@@ -217,7 +217,7 @@ page — the same public path every shipped tab uses (`ctx.sidebarRightTabs.regi
 the side chat itself; the only floating surface is the one text selection admits (below). The tab
 type is registered with `multiple: true`, so one parent session can hold several side-chat
 tab instances in the same pane; each instance owns its own side session. The guide entry
-and the tab's status-bar new-side-chat button each open a fresh instance.
+and the tab strip's add control each open a fresh instance.
 
 | registration | value | purpose |
 |---|---|---|
@@ -235,7 +235,8 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
   numbered per parent session: the first instance uses the plain localized title, later
   instances the indexed key `tab.titleIndexed` (`Side chat {index}` / `侧边会话 {index}`).
 - The guide card opens a new side chat on every activation rather than focusing an existing
-  tab, and every tab's status bar carries a new-side-chat button (locale key `tab.new`) that
+  tab, and the tab strip's add control provides the second entry (locale key `tab.new` is no
+  longer rendered by the status bar) that
   opens another side-chat tab in the same pane.
 - `keepMounted` keeps each tab's own scroll position and draft across tab switches.
 - Live updates are gated by each tab's own `visible` flag from `useTabInfo()`: collapsing
@@ -283,7 +284,7 @@ and the tab's status-bar new-side-chat button each open a fresh instance.
 - Tab chip title and new side chat: the title slot renders the plain localized title for the
   first side chat of a parent session and the indexed key `tab.titleIndexed`
   (`Side chat {index}` / `侧边会话 {index}`) for later ones, numbered per parent session.
-  The tab status bar carries a new-side-chat button (locale key `tab.new`) that opens
+  The tab strip's add control opens
   another side-chat tab in the same pane. Neither depends on a side session existing:
   opening a tab does no host work.
 - Fold `entries` into rows with pure functions: `user/message` (`data.source` / `data.content`,
@@ -502,7 +503,7 @@ Performance & usage detailed/compact preference.
 - The `zh` and `en` dictionaries must expose the identical key set with non-empty values.
 - Localized surfaces: tab type title, guide entry title/description (thunks, re-read on every
   projection), tab chip title (plain, or `tab.titleIndexed` for later side chats of the same
-  parent), the status-bar new-side-chat button (`tab.new`), status bar, empty state, composer
+  parent), the tab strip's add control, empty/restore state, composer
   placeholder, send/stop labels, thinking indicator, reasoning/tool fold titles,
   pending-message state, context and steering tags, the usage dock, and error text keyed by
   host error code. The `@` menu adds `reference.menu` (listbox aria), `reference.loading` and

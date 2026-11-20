@@ -145,7 +145,7 @@ Restart DSH (quit and reopen the Desktop app, or restart the `dsh web` process).
 3. Send the first message. That send creates that tab's side session: it forks the parent's
    context, injects the boundary message, and starts the agent.
 4. Open another side chat whenever you need one: click the guide card again, or press the
-   **New side chat** (「新建侧边会话」) button in any side-chat tab's status bar. Each
+   tab strip's **+** add control. Each
    additional tab is an independent side session, created on its first message, and its chip
    is numbered within the parent session (**Side chat 2** / 「侧边会话 2」, …).
 5. Keep talking, stop a running turn, or close one tab. Collapsing the sidebar or switching
@@ -194,7 +194,7 @@ main conversation (the next request replaces it).
 
 ## Parent lookup
 
-Before a side chat sends its first message, its status bar carries a small **Parent lookup
+Before a side chat sends its first message, its slim status row carries a small **Parent lookup
 on/off** toggle (`可查主会话` / `不查主会话`). With lookup on — the default — the side
 agent gets a read-only tool, `side_chat_parent_context`, that returns the latest messages of
 the main conversation (up to 20, default 8) when the user refers to something that happened
@@ -328,11 +328,11 @@ Unlike read-only side-chat plugins, this one is expected to change files:
   labelled **Side chat** (「侧边会话」 when DSH is in Chinese); later ones append their
   ordinal — **Side chat 2**, **Side chat 3** (「侧边会话 2」, 「侧边会话 3」). There is no
   floating window, no fixed width, no shadow or mask, and no page overlay.
-- The tab body has a status bar (status dot plus the localized status — Not created yet /
-  Running… / Sending… / Idle, or 尚未创建 / 运行中 / 发送中 / 空闲 — and the localized queue
-  count while messages queue, plus the **New side chat** / 「新建侧边会话」 button that
-  opens another side-chat tab in the same pane), the message list, the composer, and — once
-  the side chat has usage data — the usage dock under the composer.
+- After the first message the tab body has no status row (the running/idle label, queue
+  count and duplicate new-side-chat button were removed; adding tabs belongs to the tab
+  strip's add control). Before the first message a slim row carries only the **Parent
+  lookup** toggle, then the message list, the composer, and — once the side chat has usage
+  data — the usage dock under the composer.
 - Messages: user bubbles with timestamps; assistant Markdown streamed token by token while
   the turn runs (reasoning folded, tool calls folded with their arguments and results);
   running/thinking indicator when no live text is visible yet; optimistic pending messages;
@@ -359,7 +359,7 @@ Unlike read-only side-chat plugins, this one is expected to change files:
 - The message list follows the newest message while you stay at the bottom; scrolling up
   stops the auto-follow.
 - Several side chats can run at once: the guide card opens a new tab on every click, and
-  each tab's status-bar new-side-chat button does the same. Each additional tab starts empty
+  the tab strip's add control does the same. Each additional tab starts empty
   and creates its own side session on its first message.
 - Each side-chat tab keeps its own side session, transcript, scroll position and draft. The
   tab type sets `keepMounted`, so switching tabs, switching sessions, collapsing the column
@@ -541,7 +541,7 @@ The tab's user-facing copy follows DSH's language setting (Settings → General 
 语言). Chinese and English are built in: choosing 中文 renders the Chinese copy and choosing
 English renders English, without a restart. Switching the language re-renders already-open
 tabs immediately — the tab chips (including the numbered titles of later side chats), the
-sidebar's guide card, the status bar and its new-side-chat button, empty states, composer
+sidebar's guide card, the empty restore list, empty states, composer
 placeholders, fold and tool labels, the usage dock's labels and tooltips, and error titles
 all follow. The tab title and guide entries are thunks re-read by the sidebar projection, so
 they switch in place.
@@ -581,13 +581,13 @@ interactive confirmation for side chats that need to write files or run commands
 
 | action | effect |
 |---|---|
-| open the guide card / press a tab's new-side-chat button | a new client tab instance only; no agent |
+| open the guide card / use the tab strip's add control | a new client tab instance only; no agent |
 | first send in that tab | create that tab's side session: fork seed, snapshot, boundary message, agent |
 | collapse sidebar / switch tab | that tab's live updates pause; its tab state, draft and side session are kept |
 | close the tab | client clears that tab's state, then calls `close` if its side session exists; host removes the handle before disposing it |
 | close during a running turn | dispose cancels that side session's turn; the handle is gone; other side chats keep running |
 | close result | that tab's agent is disposed; the host then deletes that side session's own persisted directory from the Host process with `node:fs/promises.rm` (best effort, guarded to that directory); the other side chats and the main session are unaffected |
-| reopen | the closed side session cannot be reopened; opening the guide card or the new-side-chat button starts a new tab, whose side session is created on the next message |
+| reopen | the closed side session cannot be reopened; opening the guide card or the tab strip's add control starts a new tab, whose side session is created on the next message |
 
 Disposal happens whenever a side session existed; artifact deletion is best effort. If the
 persistence service cannot locate the artifact or the removal fails, close still succeeds
@@ -695,12 +695,12 @@ Tab state lives in memory and is not restored across a reload. If the rebuilt ta
 same per-tab identity while the host process is still running, its `create` reattaches to
 the existing side session (create is idempotent per instance key); otherwise you get a new
 side chat. After a GUI or host restart every side session is gone. Reopen the guide card or
-press the new-side-chat button; a new side chat is created on the next message.
+use the tab strip's add control; a new side chat is created on the next message.
 
 **Clicking the guide card starts another side chat instead of focusing the old one.**
 
 That is intended: one parent session can hold several independent side chats, and the guide
-card — like the status bar's new-side-chat button — opens a new one on every activation.
+card — like the tab strip's add control — opens a new one on every activation.
 Close the tabs you no longer need; closing one only destroys its own side session.
 
 **A reply appears all at once instead of streaming.**
@@ -805,7 +805,7 @@ is about a dependency, not this plugin.
 | file | role |
 |---|---|
 | `lib/index.js` | host half: `webServer` routes including the SSE stream and the read-only `references` lookup, live assistant-attempt folding, fork seed + recent-context snapshot, boundary injection, per-identity (per-tab) side-session registry, the optional `contextWindow` on snapshot/`hello`, close/dispose |
-| `lib/client.js` | client half: right-Sidebar tab type + guide entry, one tab body per tab instance (SSE/poll message sources, streaming rendering, composer, `@` file-reference completion and chips, bottom usage dock, RPC calls), numbered chips + the new-side-chat button, and the close handler |
+| `lib/client.js` | client half: right-Sidebar tab type + guide entry, one tab body per tab instance (SSE/poll message sources, streaming rendering, composer, `@` file-reference completion and chips, bottom usage dock, RPC calls), numbered chips, and the close handler |
 | `cordis.patch.yml` | bundle patch inserting the `dsh-side-chat` loader row |
 | `package.json` | `dsh.bundle.patch`, `dsh.client` (web platform), package identity, `node >= 22` |
 | `dsh.plugin.json` | community manifest metadata; DSH itself does not read this file (see the README) |
